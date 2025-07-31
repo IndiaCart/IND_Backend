@@ -7,6 +7,10 @@ import connectDB from './src/config/dbConnection.js';
 import errorHandler from './src/middleware/errorHandler.js';
 import mediaContentRoute from './src/router/mediaContentRoutes.js';
 import userModel from './src/model/userModel.js';
+import productRouter from './src/router/adminRoutes/productRoute.js';
+import categoryRouter from './src/router/adminRoutes/categoryRoute.js';
+import subCategoryRouter from './src/router/adminRoutes/subCategoryRoute.js';
+import VariationRouter from './src/router/adminRoutes/variationRoutes.js';
 const app = express();
 
 //Initialize dotenv
@@ -14,8 +18,8 @@ dotenv.config();
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:5173", // ✅ DO NOT use "*"
-  credentials: true                // ✅ Required for cookies
+  origin: "*",
+  credentials: true              
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -23,9 +27,28 @@ app.use(cookieParser());
 // Error-handling middleware (should come last)
 app.use(errorHandler);
 
+// Log every Route
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`);
+  });
+
+  next();
+});
+
 // Routes
 app.use("/api/v1/auth", userAuthRouter);
 app.use("/api/v1/media", mediaContentRoute);
+
+// Admin Product Route
+app.use("/api/v1/product" , productRouter)
+app.use("/api/v1/category" , categoryRouter)
+app.use("/api/v1/subCategory" , subCategoryRouter)
+app.use('/api/v1/variation-template', VariationRouter);
+
 
 // Admin registration route
 app.get('/registerAdmin', async (req, res) => {

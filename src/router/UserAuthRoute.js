@@ -1,12 +1,12 @@
 import express from 'express';
-import { AdminLogin, editUserProfile, getUserProfile, logout, sendOtpForLogin, sendOtpForSignup, setPasswowd, verifyOtpAndLogin, verifyOtpAndRegister } from '../controller/userAuthController.js';
+import { AdminLogin, editUserProfile, getUserProfile, GoogleRegisterOrLogin, logout, sendOtpForLogin, sendOtpForSignup, setPasswowd, verifyOtpAndLogin, verifyOtpAndRegister } from '../controller/userAuthController.js';
 import { isAuthenticated } from '../middleware/authMiddleware.js';
 import multer from 'multer';
 
 const userAuthRouter = express.Router();
 
 const upload = multer({ dest: 'uploads/' });
-
+userAuthRouter.post("/google", GoogleRegisterOrLogin);
 userAuthRouter.post("/register", verifyOtpAndRegister);
 userAuthRouter.post("/sendOtpForSignUp", sendOtpForSignup);
 userAuthRouter.post("/login" , verifyOtpAndLogin);

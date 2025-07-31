@@ -6,6 +6,56 @@ import { generateToken } from "../utils/jwtTokenGenerate.js";
 import { sendOtpToMobile } from "../utils/sendOtpToMobile.js";
 import  cloudinary from "../config/cloudinaryConfig.js";
 import fs from 'fs/promises';
+import  { OAuth2Client }  from 'google-auth-library';
+const client = new OAuth2Client(process.env.GOOGLE_WEB_CLIENT_ID); 
+
+export const GoogleRegisterOrLogin = async (req , res)=>{
+   try {
+    console.log("inser login Google")
+    const { token, email } = req.body;
+    console.log(token , email)
+    // Verify the token
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience:process.env.GOOGLE_WEB_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    // Validate the email
+    if (payload.email !== email) {
+      return res.status(401).json({ error: "Email mismatch" });
+    }
+
+    // You now have trusted user info from Google
+    const { sub, name, picture, email: verifiedEmail } = payload;
+
+    let user = await userModel.findOne({ email: verifiedEmail });
+    if (!user) {
+      user = await userModel.create({
+        name,
+        email: verifiedEmail,
+        profilePic: picture,
+        googleId: sub,
+      });
+    }
+
+    const appToken = generateToken(user._id);
+
+    return res.status(200).json({
+      success:true,
+      message: "Login success",
+      token: appToken,
+      user,
+    });
+
+  } catch (error) {
+    console.error("Google Token Verification Failed:", error);
+    return res.status(401).json({ error: "Invalid ID token" });
+  }
+}
+
+
 export const sendOtpForSignup = async (req, res) => {
     try {
       const { name, email, phoneNumber } = req.body;
